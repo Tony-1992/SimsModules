@@ -46,7 +46,7 @@ public class CrashingModule : IModule
                     ctx.Status("[yellow]Current task:[/] Cleaning up folders...");
 
                     CloseGame();
-                    Thread.Sleep(3000);
+                    Thread.Sleep(5000);
                     CleanUp();
 
                     AnsiConsole.WriteLine("============================");
@@ -68,7 +68,7 @@ public class CrashingModule : IModule
 
             // load game and wait
             Process.Start(_pathToGameExe);
-            Thread.Sleep(3000);
+            Thread.Sleep(5000);
 
             DateTime gameExpirationTime = DateTime.Now.AddMinutes(1);
             while (GameProcessIsRunning())
@@ -91,7 +91,7 @@ public class CrashingModule : IModule
 
     private string FindFailedFile(string folderName)
     {
-        Thread.Sleep(3000);
+        Thread.Sleep(5000);
         string failedModName = string.Empty;
 
         foreach (DirectoryInfo folder in GetAllFoldersFromModLocation())
@@ -100,7 +100,7 @@ public class CrashingModule : IModule
         }
 
         AnsiConsole.MarkupLine("[cyan1]LOG:[/] Rebuilding Mod folder to find individual file");
-        var updatedPath = CopyFailedFolderToModFolder(folderName);
+        string updatedPath = CopyFailedFolderToModFolder(folderName);
         string[] files = Directory.GetFiles(updatedPath);
 
         foreach (string fileName in files)
@@ -112,7 +112,7 @@ public class CrashingModule : IModule
 
             // load game and wait
             Process.Start(_pathToGameExe);
-            Thread.Sleep(3000);
+            Thread.Sleep(5000);
 
             while (GameProcessIsRunning())
             {
@@ -152,6 +152,7 @@ public class CrashingModule : IModule
         if (Directory.Exists(destinationFolder) is false)
             Directory.CreateDirectory(destinationFolder);
 
+        AnsiConsole.MarkupLine($"[cyan1]LOG:[/] Copying files back to to sims mod location... please wait...");
         foreach (FileInfo fileName in folder.GetFiles())
         {
             fileName.CopyTo(Path.Combine(destinationFolder, fileName.Name));
@@ -209,9 +210,16 @@ public class CrashingModule : IModule
 
     private void CloseGame()
     {
-        Process[] procs = Process.GetProcessesByName(_gameProcessName);
-        foreach (Process proc in procs)
-            proc.Kill(true);
+        try
+        {
+            Process[] procs = Process.GetProcessesByName(_gameProcessName);
+            foreach (Process proc in procs)
+                proc.Kill(true);
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"Something went wrong closing the game - {ex.Message}");
+        }
     }
 
     private List<DirectoryInfo> GetAllFoldersFromModLocation()
